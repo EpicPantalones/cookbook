@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Cookbook{% endblock %}
+
+{% block content %}
+<style>
+    .homepage-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    h1 {
+        margin-bottom: 30px;
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+    
+    @media (max-width: 900px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .dashboard-card {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .dashboard-card h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #667eea;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .week-calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .week-day {
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 12px;
+        min-height: 150px;
+    }
+    
+    .week-day-header {
+        font-weight: bold;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #667eea;
+        text-align: center;
+    }
+    
+    .week-day-date {
+        font-size: 12px;
+        color: #999;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    .week-day.today {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .week-day.today .week-day-header,
+    .week-day.today .week-day-date,
+    .week-day.today .meal-item {
+        color: white;
+    }
+    
+    .meal-item {
+        font-size: 11px;
+        padding: 4px 6px;
+        margin: 3px 0;
+        background: white;
+        border-radius: 4px;
+        color: #333;
+        border-left: 3px solid #667eea;
+    }
+    
+    .week-day.today .meal-item {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border-left-color: white;
+    }
+    
+    .meal-icon {
+        margin-right: 3px;
+    }
+    
+    .grocery-list {
+        list-style: none;
+        padding: 0;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .grocery-list li {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .grocery-item-name {
+        font-weight: bold;
+    }
+    
+    .grocery-item-amount {
+        color: #666;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 30px;
+        color: #999;
+        font-style: italic;
+    }
+    
+    .grocery-date {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="homepage-container">
+    <h1>🏠 Welcome to Your Cookbook</h1>
+    
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <h2>📅 This Week's Meals</h2>
+            <div id="week-calendar" class="week-calendar">
+                <div class="no-data">Loading...</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h2>🛒 Latest Grocery List</h2>
+            <div id="grocery-date" class="grocery-date"></div>
+            <ul id="grocery-list" class="grocery-list">
+                <li class="no-data">No grocery list generated yet</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function loadWeekMeals() {
+        try {
+            const response = await fetch('/api/current-week-meals');
+            const meals = await response.json();
+            
+            const weekCalendar = document.getElementById('week-calendar');
+            
+            // Get current week dates
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - dayOfWeek);
+            
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            let weekHTML = '';
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                const isToday = dateStr === today.toISOString().split('T')[0];
+                
+                const dayMeals = meals.filter(m => m.date === dateStr);
+                
+                let mealsHTML = '';
+                const mealIcons = { breakfast: '🍳', lunch: '🥗', dinner: '🍝' };
+                
+                dayMeals.forEach(meal => {
+                    if (meal.recipe_name) {
+                        mealsHTML += `<div class="meal-item"><span class="meal-icon">${mealIcons[meal.meal_type] || '🍴'}</span>${meal.recipe_name}</div>`;
+                    }
+                });
+                
+                if (!mealsHTML) {
+                    mealsHTML = '<div class="meal-item" style="opacity: 0.5;">No meals</div>';
+                }
+                
+                weekHTML += `
+                    <div class="week-day ${isToday ? 'today' : ''}">
+                        <div class="week-day-header">${days[i]}</div>
+                        <div class="week-day-date">${months[date.getMonth()]} ${date.getDate()}</div>
+                        ${mealsHTML}
+                    </div>
+                `;
+            }
+            
+            weekCalendar.innerHTML = weekHTML;
+        } catch (error) {
+            console.error('Error loading week meals:', error);
+            document.getElementById('week-calendar').innerHTML = '<div class="no-data">Error loading meals</div>';
+        }
+    }
+    
+    async function loadGroceryList() {
+        try {
+            const response = await fetch('/api/grocery-list/latest');
+            const data = await response.json();
+            
+            const groceryList = document.getElementById('grocery-list');
+            const groceryDate = document.getElementById('grocery-date');
+            
+            if (data.success && data.items.length > 0) {
+                const createdDate = new Date(data.created_at);
+                groceryDate.textContent = `Generated on ${createdDate.toLocaleDateString()} at ${createdDate.toLocaleTimeString()}`;
+                
+                groceryList.innerHTML = data.items.map(item => `
+                    <li>
+                        <span class="grocery-item-name">${item.name}</span>
+                        <span class="grocery-item-amount">${item.amount} ${item.unit}</span>
+                    </li>
+                `).join('');
+            } else {
+                groceryDate.textContent = '';
+                groceryList.innerHTML = '<li class="no-data">No grocery list generated yet</li>';
+            }
+        } catch (error) {
+            console.error('Error loading grocery list:', error);
+        }
+    }
+    
+    // Load data on page load
+    loadWeekMeals();
+    loadGroceryList();
+</script>
+{% endblock %}

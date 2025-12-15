@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+
+{% block title %}Groceries - Cookbook{% endblock %}
+
+{% block content %}
+<style>
+    .groceries-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    h1 {
+        margin-bottom: 30px;
+    }
+    
+    .recipe-search-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .search-container {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .search-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 2px solid #667eea;
+        border-top: none;
+        border-radius: 0 0 5px 5px;
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+        z-index: 100;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    
+    .search-dropdown.show {
+        display: block;
+    }
+    
+    .dropdown-item {
+        padding: 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .dropdown-item:hover {
+        background: #f5f5f5;
+    }
+    
+    .dropdown-item-thumb {
+        width: 40px;
+        height: 40px;
+        border-radius: 5px;
+        object-fit: cover;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+    }
+    
+    .dropdown-item-info {
+        flex: 1;
+    }
+    
+    .dropdown-item-name {
+        font-weight: bold;
+    }
+    
+    .dropdown-item-meta {
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .selected-recipes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        min-height: 60px;
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 5px;
+        border: 2px dashed #ddd;
+    }
+    
+    .selected-recipes.empty::after {
+        content: 'No recipes selected. Search and click to add recipes.';
+        color: #999;
+        font-style: italic;
+    }
+    
+    .recipe-tag {
+        background: #667eea;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+    
+    .recipe-tag-name {
+        margin-right: 5px;
+    }
+    
+    .recipe-tag-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        border-left: 1px solid rgba(255,255,255,0.3);
+        padding-left: 8px;
+    }
+    
+    .recipe-tag-btn {
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 16px;
+        line-height: 1;
+        padding: 0 4px;
+        transition: transform 0.1s;
+    }
+    
+    .recipe-tag-btn:hover {
+        transform: scale(1.2);
+    }
+    
+    .recipe-tag-count {
+        font-weight: bold;
+        min-width: 20px;
+        text-align: center;
+    }
+    
+    .ingredients-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .ingredients-section h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+    
+    .ingredients-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    
+    .ingredients-table th {
+        background: #667eea;
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: bold;
+    }
+    
+    .ingredients-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .ingredients-table tr:hover {
+        background: #f9f9f9;
+    }
+    
+    .ingredients-table input[type="number"] {
+        width: 80px;
+        padding: 6px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+    }
+    
+    .ingredients-table input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    
+    .generate-btn {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        display: block;
+        margin: 0 auto;
+    }
+    
+    .generate-btn:hover {
+        background: #45a049;
+    }
+    
+    .grocery-list-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-top: 30px;
+        display: none;
+    }
+    
+    .grocery-list-section.show {
+        display: block;
+    }
+    
+    .grocery-list-section h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #4CAF50;
+    }
+    
+    .copy-btn {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+    
+    .copy-btn:hover {
+        background: #5568d3;
+    }
+    
+    .copy-btn.copied {
+        background: #4CAF50;
+    }
+    
+    .grocery-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .grocery-list li {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .grocery-item-name {
+        font-weight: bold;
+    }
+    
+    .grocery-item-amount {
+        color: #666;
+    }
+    
+    .no-ingredients {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+        font-style: italic;
+    }
+</style>
+
+<div class="groceries-container">
+    <h1>Grocery List Generator</h1>
+    
+    <div class="recipe-search-section">
+        <h2>Select Recipes</h2>
+        <div class="search-container">
+            <input type="text" id="recipe-search" class="search-input" placeholder="Search for recipes..." autocomplete="off">
+            <div id="search-dropdown" class="search-dropdown">
+                <!-- Dropdown results will appear here -->
+            </div>
+        </div>
+        <div id="selected-recipes" class="selected-recipes empty">
+            <!-- Selected recipes will appear here -->
+        </div>
+    </div>
+    
+    <div class="ingredients-section">
+        <h2>Ingredients</h2>
+        <div id="ingredients-container">
+            <div class="no-ingredients">Select recipes to see ingredients</div>
+        </div>
+    </div>
+    
+    <div class="grocery-list-section" id="grocery-list-section">
+        <h2>📝 Your Grocery List</h2>
+        <button class="copy-btn" onclick="copyGroceryList()">Copy List</button>
+        <ul id="grocery-list" class="grocery-list">
+            <!-- Generated grocery list will appear here -->
+        </ul>
+    </div>
+</div>
+
+<script>
+    let allRecipes = [];
+    let selectedRecipes = [];
+    let ingredientsData = {};
+    
+    // Load all recipes
+    async function loadRecipes() {
+        const response = await fetch('/api/recipes-with-ingredients');
+        allRecipes = await response.json();
+    }
+    
+    // Search functionality
+    document.getElementById('recipe-search').addEventListener('input', function(e) {
+        const searchValue = e.target.value.toLowerCase().trim();
+        const dropdown = document.getElementById('search-dropdown');
+        
+        if (searchValue === '') {
+            dropdown.classList.remove('show');
+            return;
+        }
+        
+        const results = allRecipes.filter(recipe => 
+            recipe.name.toLowerCase().includes(searchValue)
+        );
+        
+        if (results.length === 0) {
+            dropdown.innerHTML = '<div style="padding: 12px; color: #999;">No recipes found</div>';
+            dropdown.classList.add('show');
+            return;
+        }
+        
+        dropdown.innerHTML = results.map(recipe => {
+            let thumbHTML;
+            if (recipe.thumbnail_url) {
+                thumbHTML = `<img src="${recipe.thumbnail_url}" class="dropdown-item-thumb">`;
+            } else {
+                thumbHTML = `<div class="dropdown-item-thumb">${recipe.name[0].toUpperCase()}</div>`;
+            }
+            
+            return `
+                <div class="dropdown-item" onclick="selectRecipe(${recipe.id})">
+                    ${thumbHTML}
+                    <div class="dropdown-item-info">
+                        <div class="dropdown-item-name">${recipe.name}</div>
+                        <div class="dropdown-item-meta">${recipe.ingredients.length} ingredients</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        dropdown.classList.add('show');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-container')) {
+            document.getElementById('search-dropdown').classList.remove('show');
+        }
+    });
+    
+    function selectRecipe(recipeId, multiplier = 1) {
+        // Check if already selected
+        const existing = selectedRecipes.find(r => r.id === recipeId);
+        if (existing) {
+            existing.multiplier = (existing.multiplier || 1) + multiplier;
+            updateSelectedRecipes();
+            updateIngredientsTable();
+            return;
+        }
+        
+        const recipe = allRecipes.find(r => r.id === recipeId);
+        selectedRecipes.push({ ...recipe, multiplier: multiplier });
+        
+        // Clear search
+        document.getElementById('recipe-search').value = '';
+        document.getElementById('search-dropdown').classList.remove('show');
+        
+        updateSelectedRecipes();
+        updateIngredientsTable();
+    }
+    
+    function increaseMultiplier(recipeId) {
+        const recipe = selectedRecipes.find(r => r.id === recipeId);
+        if (recipe) {
+            recipe.multiplier = (recipe.multiplier || 1) + 1;
+            updateSelectedRecipes();
+            updateIngredientsTable();
+        }
+    }
+    
+    function decreaseMultiplier(recipeId) {
+        const recipe = selectedRecipes.find(r => r.id === recipeId);
+        if (recipe) {
+            recipe.multiplier = (recipe.multiplier || 1) - 1;
+            if (recipe.multiplier <= 0) {
+                selectedRecipes = selectedRecipes.filter(r => r.id !== recipeId);
+            }
+            updateSelectedRecipes();
+            updateIngredientsTable();
+        }
+    }
+    
+    function updateSelectedRecipes() {
+        const container = document.getElementById('selected-recipes');
+        
+        if (selectedRecipes.length === 0) {
+            container.innerHTML = '';
+            container.classList.add('empty');
+            return;
+        }
+        
+        container.classList.remove('empty');
+        container.innerHTML = selectedRecipes.map(recipe => `
+            <div class="recipe-tag">
+                <span class="recipe-tag-name">${recipe.name}</span>
+                <div class="recipe-tag-controls">
+                    <span class="recipe-tag-btn" onclick="decreaseMultiplier(${recipe.id})">−</span>
+                    <span class="recipe-tag-count">${recipe.multiplier || 1}</span>
+                    <span class="recipe-tag-btn" onclick="increaseMultiplier(${recipe.id})">+</span>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function updateIngredientsTable() {
+        const container = document.getElementById('ingredients-container');
+        
+        if (selectedRecipes.length === 0) {
+            container.innerHTML = '<div class="no-ingredients">Select recipes to see ingredients</div>';
+            document.getElementById('grocery-list-section').classList.remove('show');
+            return;
+        }
+        
+        // Aggregate ingredients
+        ingredientsData = {};
+        
+        selectedRecipes.forEach(recipe => {
+            const multiplier = recipe.multiplier || 1;
+            recipe.ingredients.forEach(ing => {
+                const key = `${ing.name.toLowerCase()}-${ing.unit}`;
+                const adjustedQuantity = (parseFloat(ing.quantity) || 0) * multiplier;
+                if (ingredientsData[key]) {
+                    ingredientsData[key].quantity += adjustedQuantity;
+                } else {
+                    ingredientsData[key] = {
+                        name: ing.name,
+                        quantity: adjustedQuantity,
+                        unit: ing.unit,
+                        have: 0,
+                        skip: false
+                    };
+                }
+            });
+        });
+        
+        // Create table
+        let tableHTML = `
+            <table class="ingredients-table">
+                <thead>
+                    <tr>
+                        <th>Ingredient</th>
+                        <th>Need</th>
+                        <th>Unit</th>
+                        <th>Have</th>
+                        <th>Skip</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        // Sort ingredients alphabetically by name
+        const sortedKeys = Object.keys(ingredientsData).sort((a, b) => 
+            ingredientsData[a].name.localeCompare(ingredientsData[b].name)
+        );
+        
+        sortedKeys.forEach(key => {
+            const ing = ingredientsData[key];
+            tableHTML += `
+                <tr>
+                    <td>${ing.name}</td>
+                    <td>${ing.quantity.toFixed(2)}</td>
+                    <td>${ing.unit}</td>
+                    <td><input type="number" step="0.01" value="${ing.have}" data-key="${key}" onchange="updateHave(this)"></td>
+                    <td><input type="checkbox" data-key="${key}" onchange="updateSkip(this)"></td>
+                </tr>
+            `;
+        });
+        
+        tableHTML += `
+                </tbody>
+            </table>
+            <button class="generate-btn" onclick="generateGroceryList()">Generate Grocery List</button>
+        `;
+        
+        container.innerHTML = tableHTML;
+    }
+    
+    function updateHave(input) {
+        const key = input.dataset.key;
+        ingredientsData[key].have = parseFloat(input.value) || 0;
+    }
+    
+    function updateSkip(input) {
+        const key = input.dataset.key;
+        ingredientsData[key].skip = input.checked;
+    }
+    
+    function generateGroceryList() {
+        const groceryList = document.getElementById('grocery-list');
+        const section = document.getElementById('grocery-list-section');
+        
+        const itemsNeeded = [];
+        
+        Object.keys(ingredientsData).forEach(key => {
+            const ing = ingredientsData[key];
+            if (ing.skip) return;
+            
+            const needed = ing.quantity - ing.have;
+            if (needed > 0) {
+                itemsNeeded.push({
+                    name: ing.name,
+                    amount: needed.toFixed(2),
+                    unit: ing.unit
+                });
+            }
+        });
+        
+        // Sort alphabetically by name
+        itemsNeeded.sort((a, b) => a.name.localeCompare(b.name));
+        
+        if (itemsNeeded.length === 0) {
+            groceryList.innerHTML = '<li style="text-align: center; color: #4CAF50;">✓ You have everything you need!</li>';
+        } else {
+            groceryList.innerHTML = itemsNeeded.map(item => `
+                <li>
+                    <span class="grocery-item-name">${item.name}</span>
+                    <span class="grocery-item-amount">${item.amount} ${item.unit}</span>
+                </li>
+            `).join('');
+        }
+        
+        // Save grocery list to database
+        if (itemsNeeded.length > 0) {
+            fetch('/api/grocery-list', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ items: itemsNeeded })
+            });
+        }
+        
+        section.classList.add('show');
+        section.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function copyGroceryList() {
+        const itemsNeeded = [];
+        
+        Object.keys(ingredientsData).forEach(key => {
+            const ing = ingredientsData[key];
+            if (ing.skip) return;
+            
+            const needed = ing.quantity - ing.have;
+            if (needed > 0) {
+                itemsNeeded.push(`${ing.name}, ${needed.toFixed(2)}${ing.unit}`);
+            }
+        });
+        
+        if (itemsNeeded.length === 0) {
+            alert('No items in your grocery list!');
+            return;
+        }
+        
+        const text = itemsNeeded.join('\n');
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('copied');
+            }, 2000);
+        });
+    }
+    
+    // Check for recipe IDs from URL parameters (from calendar)
+    async function checkURLParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const recipeIds = urlParams.get('recipes');
+        
+        if (recipeIds) {
+            await loadRecipes();
+            const ids = recipeIds.split(',').map(id => parseInt(id));
+            
+            // Count occurrences of each recipe ID
+            const recipeCounts = {};
+            ids.forEach(id => {
+                recipeCounts[id] = (recipeCounts[id] || 0) + 1;
+            });
+            
+            // Add recipes with their counts
+            Object.keys(recipeCounts).forEach(id => {
+                const recipeId = parseInt(id);
+                const recipe = allRecipes.find(r => r.id === recipeId);
+                if (recipe && !selectedRecipes.find(r => r.id === recipeId)) {
+                    selectedRecipes.push({ ...recipe, multiplier: recipeCounts[id] });
+                }
+            });
+            
+            updateSelectedRecipes();
+            updateIngredientsTable();
+            // Clear URL parameters
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    }
+    
+    // Initialize
+    loadRecipes();
+    checkURLParams();
+</script>
+{% endblock %}

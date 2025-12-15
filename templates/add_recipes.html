@@ -1,0 +1,647 @@
+{% extends "base.html" %}
+
+{% block title %}Add Recipe - Cookbook{% endblock %}
+
+{% block content %}
+<style>
+    .tab-container {
+        margin: 20px 0;
+    }
+    
+    .tab-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #ddd;
+    }
+    
+    .tab-button {
+        padding: 12px 30px;
+        border: none;
+        background: #f0f0f0;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 5px 5px 0 0;
+        transition: all 0.3s;
+    }
+    
+    .tab-button.active {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .tab-button:hover:not(.active) {
+        background: #e0e0e0;
+    }
+    
+    .tab-content {
+        display: none;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 0 5px 5px 5px;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .form-section {
+        margin-bottom: 30px;
+    }
+    
+    .form-section h3 {
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .ingredients-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+    }
+    
+    .ingredients-table th {
+        background: #f5f5f5;
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+        font-weight: bold;
+    }
+    
+    .ingredients-table td {
+        padding: 8px;
+        border: 1px solid #ddd;
+    }
+    
+    .ingredients-table input[type="text"],
+    .ingredients-table input[type="number"],
+    .ingredients-table select {
+        width: 100%;
+        padding: 6px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+    
+    .remove-btn {
+        background: #ff4444;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    
+    .remove-btn:hover {
+        background: #cc0000;
+    }
+    
+    .add-btn {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
+    .add-btn:hover {
+        background: #45a049;
+    }
+    
+    .save-btn {
+        background: #2196F3;
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        margin-top: 20px;
+    }
+    
+    .save-btn:hover {
+        background: #0b7dda;
+    }
+    
+    .url-input-container {
+        margin-bottom: 20px;
+    }
+    
+    .url-input {
+        width: 70%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    
+    .parse-btn {
+        background: #FF9800;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+    
+    .parse-btn:hover {
+        background: #e68900;
+    }
+    
+    .preview-container {
+        display: none;
+        margin-top: 20px;
+        padding: 20px;
+        border: 2px solid #4CAF50;
+        border-radius: 5px;
+        background: #f9f9f9;
+    }
+    
+    .preview-container.show {
+        display: block;
+    }
+    
+    .edit-btn {
+        background: #9C27B0;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    
+    .edit-btn:hover {
+        background: #7B1FA2;
+    }
+    
+    .thumbnail-upload {
+        margin-top: 10px;
+    }
+</style>
+
+<h1>Add New Recipe</h1>
+
+<div class="tab-container">
+    <div class="tab-buttons">
+        <button class="tab-button active" onclick="switchTab('manual')">Manual Entry</button>
+        <button class="tab-button" onclick="switchTab('automatic')">Automatic (URL)</button>
+    </div>
+    
+    <!-- Manual Tab -->
+    <div id="manual-tab" class="tab-content active">
+        <form method="POST" action="{{ url_for('add_recipes') }}" enctype="multipart/form-data">
+            <input type="hidden" name="entry_mode" value="manual">
+            {% if recipe %}
+            <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+            {% endif %}
+            
+            <div class="form-section">
+                <h3>Basic Information</h3>
+                <div class="form-group">
+                    <label for="recipe_name">Recipe Name:</label>
+                    <input type="text" id="recipe_name" name="name" value="{{ recipe.name if recipe else '' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="3">{{ recipe.description if recipe else '' }}</textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="prep_time">Prep Time (min):</label>
+                        <input type="number" id="prep_time" name="prep_time" value="{{ recipe.prep_time if recipe else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cook_time">Cook Time (min):</label>
+                        <input type="number" id="cook_time" name="cook_time" value="{{ recipe.cook_time if recipe else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="servings">Servings:</label>
+                        <input type="number" id="servings" name="servings" value="{{ recipe.servings if recipe else '' }}">
+                    </div>
+                </div>
+                
+                {% if recipe and recipe.thumbnail_url %}
+                <div class="form-group">
+                    <label>Current Thumbnail:</label>
+                    <img src="{{ recipe.thumbnail_url }}" style="max-width: 200px; border-radius: 5px;">
+                    <input type="hidden" name="thumbnail_url" value="{{ recipe.thumbnail_url }}">
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-section">
+                <h3>Ingredients</h3>
+                <table class="ingredients-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;"></th>
+                            <th>Ingredient</th>
+                            <th style="width: 150px;">Quantity</th>
+                            <th style="width: 150px;">Unit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ingredients-tbody">
+                        {% if recipe and recipe.ingredients %}
+                            {% for ing in recipe.ingredients %}
+                            <tr class="ingredient-row">
+                                <td><button type="button" class="remove-btn" onclick="removeIngredient(this)">−</button></td>
+                                <td><input type="text" name="ingredient_name[]" value="{{ ing.name }}" required></td>
+                                <td><input type="number" step="0.01" name="ingredient_quantity[]" value="{{ ing.quantity }}" required></td>
+                                <td>
+                                    <select name="ingredient_unit[]" required>
+                                        <option value="unit" {% if ing.unit == 'unit' %}selected{% endif %}>Unit</option>
+                                        <option value="cup" {% if ing.unit == 'cup' %}selected{% endif %}>Cup</option>
+                                        <option value="tablespoon" {% if ing.unit == 'tablespoon' %}selected{% endif %}>Tablespoon</option>
+                                        <option value="teaspoon" {% if ing.unit == 'teaspoon' %}selected{% endif %}>Teaspoon</option>
+                                        <option value="ounce" {% if ing.unit == 'ounce' %}selected{% endif %}>Ounce (oz)</option>
+                                        <option value="fluid ounce" {% if ing.unit == 'fluid ounce' %}selected{% endif %}>Fluid Ounce (fl oz)</option>
+                                        <option value="pound" {% if ing.unit == 'pound' %}selected{% endif %}>Pound (lb)</option>
+                                        <option value="gram" {% if ing.unit == 'gram' %}selected{% endif %}>Gram (g)</option>
+                                        <option value="kilogram" {% if ing.unit == 'kilogram' %}selected{% endif %}>Kilogram (kg)</option>
+                                        <option value="milliliter" {% if ing.unit == 'milliliter' %}selected{% endif %}>Milliliter (ml)</option>
+                                        <option value="liter" {% if ing.unit == 'liter' %}selected{% endif %}>Liter (L)</option>
+                                        <option value="pint" {% if ing.unit == 'pint' %}selected{% endif %}>Pint</option>
+                                        <option value="quart" {% if ing.unit == 'quart' %}selected{% endif %}>Quart</option>
+                                        <option value="gallon" {% if ing.unit == 'gallon' %}selected{% endif %}>Gallon</option>
+                                        <option value="can" {% if ing.unit == 'can' %}selected{% endif %}>Can</option>
+                                        <option value="package" {% if ing.unit == 'package' %}selected{% endif %}>Package</option>
+                                        <option value="piece" {% if ing.unit == 'piece' %}selected{% endif %}>Piece</option>
+                                        <option value="clove" {% if ing.unit == 'clove' %}selected{% endif %}>Clove</option>
+                                        <option value="pinch" {% if ing.unit == 'pinch' %}selected{% endif %}>Pinch</option>
+                                        <option value="dash" {% if ing.unit == 'dash' %}selected{% endif %}>Dash</option>
+                                        <option value="whole" {% if ing.unit == 'whole' %}selected{% endif %}>Whole</option>
+                                        <option value="to taste" {% if ing.unit == 'to taste' %}selected{% endif %}>To Taste</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr class="ingredient-row">
+                            <td><button type="button" class="remove-btn" onclick="removeIngredient(this)">−</button></td>
+                            <td><input type="text" name="ingredient_name[]" required></td>
+                            <td><input type="number" step="0.01" name="ingredient_quantity[]" required></td>
+                            <td>
+                                <select name="ingredient_unit[]" required>
+                                    <option value="unit">Unit</option>
+                                    <option value="cup">Cup</option>
+                                    <option value="tablespoon">Tablespoon</option>
+                                    <option value="teaspoon">Teaspoon</option>
+                                    <option value="ounce">Ounce (oz)</option>
+                                    <option value="fluid ounce">Fluid Ounce (fl oz)</option>
+                                    <option value="pound">Pound (lb)</option>
+                                    <option value="gram">Gram (g)</option>
+                                    <option value="kilogram">Kilogram (kg)</option>
+                                    <option value="milliliter">Milliliter (ml)</option>
+                                    <option value="liter">Liter (L)</option>
+                                    <option value="pint">Pint</option>
+                                    <option value="quart">Quart</option>
+                                    <option value="gallon">Gallon</option>
+                                    <option value="can">Can</option>
+                                    <option value="package">Package</option>
+                                    <option value="piece">Piece</option>
+                                    <option value="clove">Clove</option>
+                                    <option value="pinch">Pinch</option>
+                                    <option value="dash">Dash</option>
+                                    <option value="whole">Whole</option>
+                                    <option value="to taste">To Taste</option>
+                                </select>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                <button type="button" class="add-btn" onclick="addIngredient()">+ Add Ingredient</button>
+            </div>
+            
+            <div class="form-section">
+                <h3>Instructions</h3>
+                <div class="form-group">
+                    <textarea name="instructions" rows="10" placeholder="Enter cooking instructions here..." required>{{ recipe.instructions if recipe else '' }}</textarea>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Thumbnail</h3>
+                <div class="form-group">
+                    <input type="file" name="thumbnail" accept="image/*" class="thumbnail-upload">
+                </div>
+            </div>
+            
+            <button type="submit" class="save-btn">Save Recipe to Database</button>
+        </form>
+    </div>
+    
+    <!-- Automatic Tab -->
+    <div id="automatic-tab" class="tab-content">
+        <div class="url-input-container">
+            <input type="text" id="recipe-url" class="url-input" placeholder="Enter recipe URL (e.g., from AllRecipes, Food Network, etc.)">
+            <button type="button" class="parse-btn" onclick="parseRecipeURL()">Parse Recipe</button>
+        </div>
+        
+        <div id="loading-message" style="display: none; padding: 20px; text-align: center;">
+            <p>Parsing recipe from URL...</p>
+        </div>
+        
+        <div id="preview-container" class="preview-container">
+            <h3>Recipe Preview</h3>
+            <form method="POST" action="{{ url_for('add_recipes') }}" enctype="multipart/form-data" id="auto-form">
+                <input type="hidden" name="entry_mode" value="automatic">
+                <input type="hidden" id="auto-name" name="name">
+                <input type="hidden" id="auto-description" name="description">
+                <input type="hidden" id="auto-prep-time" name="prep_time">
+                <input type="hidden" id="auto-cook-time" name="cook_time">
+                <input type="hidden" id="auto-servings" name="servings">
+                <input type="hidden" id="auto-instructions" name="instructions">
+                <input type="hidden" id="auto-thumbnail-url" name="thumbnail_url">
+                <div id="auto-ingredients-container"></div>
+                
+                <div id="preview-content"></div>
+                
+                <div style="margin-top: 20px;">
+                    <button type="button" class="edit-btn" onclick="editParsedRecipe()">Edit Recipe</button>
+                    <button type="submit" class="save-btn">Save Recipe to Database</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tabName) {
+        console.log('Switching to tab:', tabName);
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show selected tab
+        document.getElementById(tabName + '-tab').classList.add('active');
+        
+        // Mark corresponding button as active
+        const buttons = document.querySelectorAll('.tab-button');
+        if (tabName === 'manual') {
+            buttons[0].classList.add('active');
+        } else {
+            buttons[1].classList.add('active');
+        }
+    }
+    
+    function addIngredient() {
+        console.log('Adding ingredient');
+        const tbody = document.getElementById('ingredients-tbody');
+        const newRow = document.createElement('tr');
+        newRow.className = 'ingredient-row';
+        newRow.innerHTML = `
+            <td><button type="button" class="remove-btn" onclick="removeIngredient(this)">−</button></td>
+            <td><input type="text" name="ingredient_name[]" required></td>
+            <td><input type="number" step="0.01" name="ingredient_quantity[]" required></td>
+            <td>
+                <select name="ingredient_unit[]" required>
+                    <option value="unit">Unit</option>
+                    <option value="cup">Cup</option>
+                    <option value="tablespoon">Tablespoon</option>
+                    <option value="teaspoon">Teaspoon</option>
+                    <option value="ounce">Ounce (oz)</option>
+                    <option value="fluid ounce">Fluid Ounce (fl oz)</option>
+                    <option value="pound">Pound (lb)</option>
+                    <option value="gram">Gram (g)</option>
+                    <option value="kilogram">Kilogram (kg)</option>
+                    <option value="milliliter">Milliliter (ml)</option>
+                    <option value="liter">Liter (L)</option>
+                    <option value="pint">Pint</option>
+                    <option value="quart">Quart</option>
+                    <option value="gallon">Gallon</option>
+                    <option value="can">Can</option>
+                    <option value="package">Package</option>
+                    <option value="piece">Piece</option>
+                    <option value="clove">Clove</option>
+                    <option value="pinch">Pinch</option>
+                    <option value="dash">Dash</option>
+                    <option value="whole">Whole</option>
+                    <option value="to taste">To Taste</option>
+                </select>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+    }
+    
+    function removeIngredient(button) {
+        console.log('Removing ingredient');
+        const tbody = document.getElementById('ingredients-tbody');
+        if (tbody.children.length > 1) {
+            button.closest('tr').remove();
+        } else {
+            alert('You must have at least one ingredient.');
+        }
+    }
+    
+    async function parseRecipeURL() {
+        const url = document.getElementById('recipe-url').value;
+        if (!url) {
+            alert('Please enter a URL');
+            return;
+        }
+        
+        document.getElementById('loading-message').style.display = 'block';
+        document.getElementById('preview-container').classList.remove('show');
+        
+        try {
+            const response = await fetch('/parse-recipe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: url })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                displayPreview(data.recipe);
+            } else {
+                alert('Failed to parse recipe: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error parsing recipe: ' + error.message);
+        } finally {
+            document.getElementById('loading-message').style.display = 'none';
+        }
+    }
+    
+    function displayPreview(recipe) {
+        // Set hidden fields
+        document.getElementById('auto-name').value = recipe.name || '';
+        document.getElementById('auto-description').value = recipe.description || '';
+        document.getElementById('auto-prep-time').value = recipe.prep_time || '';
+        document.getElementById('auto-cook-time').value = recipe.cook_time || '';
+        document.getElementById('auto-servings').value = recipe.servings || '';
+        document.getElementById('auto-thumbnail-url').value = recipe.thumbnail_url || '';
+        document.getElementById('auto-instructions').value = recipe.instructions || '';
+        
+        // Add hidden ingredient fields
+        const ingredientsContainer = document.getElementById('auto-ingredients-container');
+        ingredientsContainer.innerHTML = '';
+        if (recipe.ingredients) {
+            recipe.ingredients.forEach((ing, index) => {
+                ingredientsContainer.innerHTML += `
+                    <input type="hidden" name="ingredient_name[]" value="${ing.name || ''}">
+                    <input type="hidden" name="ingredient_quantity[]" value="${ing.quantity || ''}">
+                    <input type="hidden" name="ingredient_unit[]" value="${ing.unit || ''}">
+                `;
+            });
+        }
+        
+        // Display preview
+        let previewHTML = `
+            <div style="background: white; padding: 15px; border-radius: 5px;">
+        `;
+        
+        if (recipe.thumbnail_url) {
+            previewHTML += `<img src="${recipe.thumbnail_url}" alt="${recipe.name}" style="max-width: 300px; border-radius: 5px; margin-bottom: 15px;">`;
+        }
+        
+        previewHTML += `
+                <h4>${recipe.name || 'Untitled Recipe'}</h4>
+                <p><strong>Description:</strong> ${recipe.description || 'N/A'}</p>
+                <p><strong>Prep Time:</strong> ${recipe.prep_time || 'N/A'} min | 
+                   <strong>Cook Time:</strong> ${recipe.cook_time || 'N/A'} min | 
+                   <strong>Servings:</strong> ${recipe.servings || 'N/A'}</p>
+                
+                <h5>Ingredients:</h5>
+                <ul>
+        `;
+        
+        if (recipe.ingredients && recipe.ingredients.length > 0) {
+            recipe.ingredients.forEach(ing => {
+                previewHTML += `<li>${ing.quantity} ${ing.unit} ${ing.name}</li>`;
+            });
+        } else {
+            previewHTML += '<li>No ingredients found</li>';
+        }
+        
+        previewHTML += `
+                </ul>
+                <h5>Instructions:</h5>
+                <p style="white-space: pre-wrap;">${recipe.instructions || 'No instructions found'}</p>
+            </div>
+        `;
+        
+        document.getElementById('preview-content').innerHTML = previewHTML;
+        document.getElementById('preview-container').classList.add('show');
+    }
+    
+    function editParsedRecipe() {
+        // Switch to manual tab and populate with data
+        const recipe = {
+            name: document.getElementById('auto-name').value,
+            description: document.getElementById('auto-description').value,
+            prep_time: document.getElementById('auto-prep-time').value,
+            cook_time: document.getElementById('auto-cook-time').value,
+            servings: document.getElementById('auto-servings').value,
+            instructions: document.getElementById('auto-instructions').value
+        };
+        
+        document.getElementById('recipe_name').value = recipe.name;
+        document.getElementById('description').value = recipe.description;
+        document.getElementById('prep_time').value = recipe.prep_time;
+        document.getElementById('cook_time').value = recipe.cook_time;
+        document.getElementById('servings').value = recipe.servings;
+        document.querySelector('textarea[name="instructions"]').value = recipe.instructions;
+        
+        // Get ingredients
+        const ingredientNames = document.querySelectorAll('#auto-ingredients-container input[name="ingredient_name[]"]');
+        const ingredientQuantities = document.querySelectorAll('#auto-ingredients-container input[name="ingredient_quantity[]"]');
+        const ingredientUnits = document.querySelectorAll('#auto-ingredients-container input[name="ingredient_unit[]"]');
+        
+        // Clear current ingredients in manual tab
+        const tbody = document.getElementById('ingredients-tbody');
+        tbody.innerHTML = '';
+        
+        // Add parsed ingredients
+        for (let i = 0; i < ingredientNames.length; i++) {
+            const newRow = document.createElement('tr');
+            newRow.className = 'ingredient-row';
+            newRow.innerHTML = `
+                <td><button type="button" class="remove-btn" onclick="removeIngredient(this)">−</button></td>
+                <td><input type="text" name="ingredient_name[]" value="${ingredientNames[i].value}" required></td>
+                <td><input type="number" step="0.01" name="ingredient_quantity[]" value="${ingredientQuantities[i].value}" required></td>
+                <td>
+                    <select name="ingredient_unit[]" required>
+                        <option value="unit">Unit</option>
+                        <option value="cup">Cup</option>
+                        <option value="tablespoon">Tablespoon</option>
+                        <option value="teaspoon">Teaspoon</option>
+                        <option value="ounce">Ounce (oz)</option>
+                        <option value="fluid ounce">Fluid Ounce (fl oz)</option>
+                        <option value="pound">Pound (lb)</option>
+                        <option value="gram">Gram (g)</option>
+                        <option value="kilogram">Kilogram (kg)</option>
+                        <option value="milliliter">Milliliter (ml)</option>
+                        <option value="liter">Liter (L)</option>
+                        <option value="pint">Pint</option>
+                        <option value="quart">Quart</option>
+                        <option value="gallon">Gallon</option>
+                        <option value="can">Can</option>
+                        <option value="package">Package</option>
+                        <option value="piece">Piece</option>
+                        <option value="clove">Clove</option>
+                        <option value="pinch">Pinch</option>
+                        <option value="dash">Dash</option>
+                        <option value="whole">Whole</option>
+                        <option value="to taste">To Taste</option>
+                    </select>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+            // Set the unit select value
+            newRow.querySelector('select').value = ingredientUnits[i].value;
+        }
+        
+        // Switch to manual tab
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('manual-tab').classList.add('active');
+        document.querySelectorAll('.tab-button')[0].classList.add('active');
+    }
+</script>
+{% endblock %}

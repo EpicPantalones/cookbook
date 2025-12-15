@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Create Plan - Cookbook{% endblock %}
+
+{% block content %}
+<h1>Create Meal Plan</h1>
+
+<form method="POST" action="{{ url_for('create_plan') }}">
+    <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required>
+    </div>
+    
+    <div>
+        <label for="meal_type">Meal Type:</label>
+        <select id="meal_type" name="meal_type" required>
+            <option value="">Select meal type</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack">Snack</option>
+        </select>
+    </div>
+    
+    <div>
+        <label for="recipe_id">Recipe:</label>
+        <select id="recipe_id" name="recipe_id" required>
+            <option value="">Select a recipe</option>
+            <!-- Recipes will be populated here -->
+        </select>
+    </div>
+    
+    <button type="submit">Add to Plan</button>
+</form>
+{% endblock %}

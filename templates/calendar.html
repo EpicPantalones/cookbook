@@ -1,0 +1,809 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar - Cookbook{% endblock %}
+
+{% block content %}
+<style>
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    
+    .calendar-header h1 {
+        margin: 0;
+    }
+    
+    .month-nav {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+    
+    .month-nav button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    
+    .month-nav button:hover {
+        background: #5568d3;
+    }
+    
+    .month-year {
+        font-size: 24px;
+        font-weight: bold;
+        min-width: 200px;
+        text-align: center;
+    }
+    
+    .calendar {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: 40px repeat(7, 1fr);
+        background: #667eea;
+        color: white;
+    }
+    
+    .calendar-weekdays div {
+        padding: 15px;
+        text-align: center;
+        font-weight: bold;
+    }
+    
+    .week-header {
+        background: #667eea;
+        color: white;
+        padding: 0 !important;
+    }
+    
+    .calendar-days {
+        display: grid;
+        grid-template-columns: 40px repeat(7, 1fr);
+        gap: 1px;
+        background: #e0e0e0;
+    }
+    
+    .week-btn {
+        background: #667eea;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+    
+    .week-btn:hover {
+        background: #5568d3;
+    }
+    
+    .calendar-day {
+        background: white;
+        min-height: 120px;
+        max-height: 120px;
+        padding: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .calendar-day.expanded {
+        max-height: 200px;
+        overflow: visible;
+    }
+    
+    .calendar-day:hover {
+        background: #f5f5f5;
+    }
+    
+    .calendar-day.other-month {
+        background: #fafafa;
+        color: #ccc;
+    }
+    
+    .calendar-day.past-date {
+        background: #f9f9f9;
+        opacity: 0.7;
+    }
+    
+    .calendar-day.past-date .meal-preview {
+        opacity: 0.6;
+    }
+    
+    .calendar-day.current-week {
+        background: #f0f4ff;
+    }
+    
+    .calendar-day.current-day {
+        background: #e8f0ff;
+        border: 2px solid #667eea;
+    }
+    
+    .calendar-day.expanded {
+        background: #fff3e0;
+        min-height: 200px;
+    }
+    
+    .day-number {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .meal-previews {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 10px;
+    }
+    
+    .meal-preview {
+        padding: 3px 5px;
+        background: #e8f5e9;
+        border-radius: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #2e7d32;
+        max-width: 100%;
+    }
+    
+    .meal-preview.empty {
+        display: none;
+    }
+    
+    .calendar-day.expanded .meal-previews {
+        display: none;
+    }
+    
+    .meal-slots {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        margin-top: 10px;
+    }
+    
+    .calendar-day.expanded .meal-slots {
+        display: flex;
+    }
+    
+    .meal-slot {
+        padding: 8px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 12px;
+    }
+    
+    .meal-slot:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .meal-slot.has-recipe {
+        background: #4CAF50;
+        color: white;
+        border-color: #4CAF50;
+    }
+    
+    .meal-slot.has-recipe:hover {
+        background: #45a049;
+    }
+    
+    .meal-label {
+        font-weight: bold;
+        font-size: 10px;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+    }
+    
+    .meal-recipe {
+        font-size: 11px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    /* Recipe Picker Modal */
+    .picker-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.6);
+    }
+    
+    .picker-content {
+        background-color: white;
+        margin: 100px auto;
+        padding: 0;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 70vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    
+    .picker-header {
+        padding: 20px;
+        border-bottom: 1px solid #ddd;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+    }
+    
+    .picker-header h3 {
+        margin: 0;
+    }
+    
+    .picker-search {
+        margin-top: 15px;
+    }
+    
+    .picker-search input {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    
+    .picker-search input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .picker-close {
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #aaa;
+    }
+    
+    .picker-close:hover {
+        color: #000;
+    }
+    
+    .recipe-list {
+        padding: 20px;
+    }
+    
+    .recipe-item {
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .recipe-item:hover {
+        background: #f5f5f5;
+        border-color: #667eea;
+    }
+    
+    .recipe-item-thumb {
+        width: 60px;
+        height: 60px;
+        border-radius: 5px;
+        object-fit: cover;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 24px;
+    }
+    
+    .recipe-item-info {
+        flex: 1;
+    }
+    
+    .recipe-item-name {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .recipe-item-meta {
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .no-recipe-option {
+        padding: 15px;
+        background: #ffebee;
+        border: 1px solid #ef5350;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        text-align: center;
+        font-weight: bold;
+        color: #c62828;
+    }
+    
+    .no-recipe-option:hover {
+        background: #ffcdd2;
+    }
+</style>
+
+<div class="calendar-header">
+    <h1>Meal Calendar</h1>
+    <div class="month-nav">
+        <button onclick="previousMonth()">&larr; Previous</button>
+        <div class="month-year" id="month-year"></div>
+        <button onclick="nextMonth()">Next &rarr;</button>
+    </div>
+</div>
+
+<div class="calendar">
+    <div class="calendar-weekdays">
+        <div class="week-header"></div>
+        <div>Sunday</div>
+        <div>Monday</div>
+        <div>Tuesday</div>
+        <div>Wednesday</div>
+        <div>Thursday</div>
+        <div>Friday</div>
+        <div>Saturday</div>
+    </div>
+    <div class="calendar-days" id="calendar-days">
+        <!-- Days will be generated by JavaScript -->
+    </div>
+</div>
+
+<!-- Recipe Picker Modal -->
+<div id="recipe-picker-modal" class="picker-modal">
+    <div class="picker-content">
+        <div class="picker-header">
+            <span class="picker-close" onclick="closeRecipePicker()">&times;</span>
+            <h3 id="picker-title">Select Recipe</h3>
+            <div class="picker-search">
+                <input type="text" id="recipe-search" placeholder="Search recipes..." onkeyup="filterRecipePicker()">
+            </div>
+        </div>
+        <div class="recipe-list" id="recipe-list">
+            <!-- Recipes will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentDate = new Date();
+    let currentYear = currentDate.getFullYear();
+    let currentMonth = currentDate.getMonth();
+    let expandedDay = null;
+    let selectedSlot = null;
+    let mealPlans = {}; // Store meal plans: {"2025-12-14-breakfast": {recipe_id, recipe_name}}
+    let recipes = [];
+    
+    // Load recipes and meal plans
+    async function loadData() {
+        // Load recipes
+        const recipesResponse = await fetch('/api/recipes');
+        recipes = await recipesResponse.json();
+        
+        // Load meal plans for current month
+        await loadMealPlans();
+        
+        renderCalendar();
+    }
+    
+    async function loadMealPlans() {
+        const year = currentYear;
+        const month = currentMonth + 1;
+        const response = await fetch(`/api/meal-plans/${year}/${month}`);
+        const plans = await response.json();
+        
+        mealPlans = {};
+        plans.forEach(plan => {
+            const key = `${plan.date}-${plan.meal_type}`;
+            mealPlans[key] = {
+                id: plan.id,
+                recipe_id: plan.recipe_id,
+                recipe_name: plan.recipe_name
+            };
+        });
+    }
+    
+    function renderCalendar() {
+        const monthNames = ["January", "February", "March", "April", "May", "June",
+                           "July", "August", "September", "October", "November", "December"];
+        
+        document.getElementById('month-year').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+        
+        const calendarDays = document.getElementById('calendar-days');
+        calendarDays.innerHTML = '';
+        
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        
+        // Get current week range
+        const currentWeekStart = new Date(today);
+        currentWeekStart.setDate(today.getDate() - today.getDay());
+        const currentWeekEnd = new Date(currentWeekStart);
+        currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
+        
+        let weekDays = [];
+        let weekIndex = 0;
+        
+        // Previous month days
+        for (let i = firstDay - 1; i >= 0; i--) {
+            if (weekDays.length === 0) {
+                const weekBtn = document.createElement('button');
+                weekBtn.className = 'week-btn';
+                weekBtn.innerHTML = '+';
+                weekBtn.dataset.weekIndex = weekIndex;
+                weekBtn.onclick = function() { sendWeekToGroceries(this); };
+                calendarDays.appendChild(weekBtn);
+            }
+            const day = daysInPrevMonth - i;
+            const dayDiv = createDayElement(day, currentMonth - 1, true);
+            weekDays.push(dayDiv);
+            calendarDays.appendChild(dayDiv);
+        }
+        
+        // Current month days
+        for (let day = 1; day <= daysInMonth; day++) {
+            if (weekDays.length === 0) {
+                const weekBtn = document.createElement('button');
+                weekBtn.className = 'week-btn';
+                weekBtn.innerHTML = '+';
+                weekBtn.dataset.weekIndex = weekIndex;
+                weekBtn.onclick = function() { sendWeekToGroceries(this); };
+                calendarDays.appendChild(weekBtn);
+            }
+            
+            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayDiv = createDayElement(day, currentMonth, false);
+            
+            // Check if current day
+            if (dateStr === todayStr) {
+                dayDiv.classList.add('current-day');
+            }
+            
+            // Check if in current week
+            const dayDate = new Date(currentYear, currentMonth, day);
+            if (dayDate >= currentWeekStart && dayDate <= currentWeekEnd) {
+                dayDiv.classList.add('current-week');
+            }
+            
+            weekDays.push(dayDiv);
+            calendarDays.appendChild(dayDiv);
+            
+            if (weekDays.length === 7) {
+                weekDays = [];
+                weekIndex++;
+            }
+        }
+        
+        // Next month days
+        const totalCells = calendarDays.children.length;
+        const remainingCells = 42 - totalCells; // 6 rows * 7 days
+        for (let day = 1; day <= remainingCells; day++) {
+            if (weekDays.length === 0) {
+                const weekBtn = document.createElement('button');
+                weekBtn.className = 'week-btn';
+                weekBtn.innerHTML = '+';
+                weekBtn.dataset.weekIndex = weekIndex;
+                weekBtn.onclick = function() { sendWeekToGroceries(this); };
+                calendarDays.appendChild(weekBtn);
+            }
+            const dayDiv = createDayElement(day, currentMonth + 1, true);
+            weekDays.push(dayDiv);
+            calendarDays.appendChild(dayDiv);
+            
+            if (weekDays.length === 7) {
+                weekDays = [];
+                weekIndex++;
+            }
+        }
+    }
+    
+    function createDayElement(day, month, isOtherMonth) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day';
+        if (isOtherMonth) dayDiv.classList.add('other-month');
+        
+        const actualMonth = month < 0 ? 11 : (month > 11 ? 0 : month);
+        const actualYear = month < 0 ? currentYear - 1 : (month > 11 ? currentYear + 1 : currentYear);
+        const dateStr = `${actualYear}-${String(actualMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        // Check if date is in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dayDate = new Date(actualYear, actualMonth, day);
+        const isPast = dayDate < today;
+        
+        if (isPast && !isOtherMonth) {
+            dayDiv.classList.add('past-date');
+        }
+        
+        const breakfastMeal = getMealPlan(dateStr, 'breakfast');
+        const lunchMeal = getMealPlan(dateStr, 'lunch');
+        const dinnerMeal = getMealPlan(dateStr, 'dinner');
+        
+        dayDiv.innerHTML = `
+            <div class="day-number">${day}</div>
+            <div class="meal-previews">
+                <div class="meal-preview ${breakfastMeal ? '' : 'empty'}">🍳 ${breakfastMeal || ''}</div>
+                <div class="meal-preview ${lunchMeal ? '' : 'empty'}">🥗 ${lunchMeal || ''}</div>
+                <div class="meal-preview ${dinnerMeal ? '' : 'empty'}">🍝 ${dinnerMeal || ''}</div>
+            </div>
+            <div class="meal-slots">
+                <div class="meal-slot" data-date="${dateStr}" data-meal="breakfast">
+                    <div class="meal-label">🍳 Breakfast</div>
+                    <div class="meal-recipe">${breakfastMeal || 'Click to add'}</div>
+                </div>
+                <div class="meal-slot" data-date="${dateStr}" data-meal="lunch">
+                    <div class="meal-label">🥗 Lunch</div>
+                    <div class="meal-recipe">${lunchMeal || 'Click to add'}</div>
+                </div>
+                <div class="meal-slot" data-date="${dateStr}" data-meal="dinner">
+                    <div class="meal-label">🍝 Dinner</div>
+                    <div class="meal-recipe">${dinnerMeal || 'Click to add'}</div>
+                </div>
+            </div>
+        `;
+        
+        // Update slots with recipes if they exist
+        const slots = dayDiv.querySelectorAll('.meal-slot');
+        slots.forEach(slot => {
+            const date = slot.dataset.date;
+            const meal = slot.dataset.meal;
+            if (getMealPlan(date, meal)) {
+                slot.classList.add('has-recipe');
+            }
+            slot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openRecipePicker(date, meal);
+            });
+        });
+        
+        dayDiv.addEventListener('click', () => toggleDay(dayDiv));
+        
+        return dayDiv;
+    }
+    
+    function getMealPlan(date, mealType) {
+        const key = `${date}-${mealType}`;
+        return mealPlans[key] ? mealPlans[key].recipe_name : null;
+    }
+    
+    function toggleDay(dayDiv) {
+        if (expandedDay && expandedDay !== dayDiv) {
+            expandedDay.classList.remove('expanded');
+        }
+        
+        dayDiv.classList.toggle('expanded');
+        expandedDay = dayDiv.classList.contains('expanded') ? dayDiv : null;
+    }
+    
+    function openRecipePicker(date, mealType) {
+        selectedSlot = { date, mealType };
+        
+        const mealNames = {
+            'breakfast': 'Breakfast',
+            'lunch': 'Lunch',
+            'dinner': 'Dinner'
+        };
+        
+        document.getElementById('picker-title').textContent = `Select Recipe for ${mealNames[mealType]} on ${date}`;
+        
+        const recipeList = document.getElementById('recipe-list');
+        recipeList.innerHTML = '';
+        
+        // Add "Remove Recipe" option if there's already a meal plan
+        const key = `${date}-${mealType}`;
+        if (mealPlans[key]) {
+            const removeDiv = document.createElement('div');
+            removeDiv.className = 'no-recipe-option';
+            removeDiv.textContent = '✕ Remove Recipe';
+            removeDiv.onclick = () => removeMealPlan(date, mealType);
+            recipeList.appendChild(removeDiv);
+        }
+        
+        // Add recipes
+        recipes.forEach(recipe => {
+            const recipeDiv = document.createElement('div');
+            recipeDiv.className = 'recipe-item';
+            recipeDiv.onclick = () => selectRecipe(recipe);
+            
+            let thumbHTML;
+            if (recipe.thumbnail_url) {
+                thumbHTML = `<img src="${recipe.thumbnail_url}" class="recipe-item-thumb">`;
+            } else {
+                thumbHTML = `<div class="recipe-item-thumb">${recipe.name[0].toUpperCase()}</div>`;
+            }
+            
+            recipeDiv.innerHTML = `
+                ${thumbHTML}
+                <div class="recipe-item-info">
+                    <div class="recipe-item-name">${recipe.name}</div>
+                    <div class="recipe-item-meta">
+                        ${recipe.prep_time ? `⏱️ ${recipe.prep_time} min` : ''}
+                        ${recipe.servings ? `🍽️ ${recipe.servings} servings` : ''}
+                    </div>
+                </div>
+            `;
+            
+            recipeList.appendChild(recipeDiv);
+        });
+        
+        document.getElementById('recipe-picker-modal').style.display = 'block';
+    }
+    
+    function closeRecipePicker() {
+        document.getElementById('recipe-picker-modal').style.display = 'none';
+        document.getElementById('recipe-search').value = '';
+    }
+    
+    function filterRecipePicker() {
+        const searchValue = document.getElementById('recipe-search').value.toLowerCase();
+        const recipeItems = document.querySelectorAll('.recipe-item');
+        
+        recipeItems.forEach(item => {
+            const recipeName = item.querySelector('.recipe-item-name').textContent.toLowerCase();
+            if (recipeName.includes(searchValue)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+    
+    async function selectRecipe(recipe) {
+        const { date, mealType } = selectedSlot;
+        
+        try {
+            const response = await fetch('/api/meal-plans', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    date: date,
+                    meal_type: mealType,
+                    recipe_id: recipe.id
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                mealPlans[`${date}-${mealType}`] = {
+                    id: data.meal_plan_id,
+                    recipe_id: recipe.id,
+                    recipe_name: recipe.name
+                };
+                renderCalendar();
+                closeRecipePicker();
+            }
+        } catch (error) {
+            alert('Error saving meal plan: ' + error.message);
+        }
+    }
+    
+    async function removeMealPlan(date, mealType) {
+        const key = `${date}-${mealType}`;
+        const mealPlan = mealPlans[key];
+        
+        if (!mealPlan) return;
+        
+        try {
+            const response = await fetch(`/api/meal-plans/${mealPlan.id}`, {
+                method: 'DELETE'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                delete mealPlans[key];
+                renderCalendar();
+                closeRecipePicker();
+            }
+        } catch (error) {
+            alert('Error removing meal plan: ' + error.message);
+        }
+    }
+    
+    function previousMonth() {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        loadMealPlans().then(() => renderCalendar());
+    }
+    
+    function nextMonth() {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        loadMealPlans().then(() => renderCalendar());
+    }
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('recipe-picker-modal');
+        if (event.target == modal) {
+            closeRecipePicker();
+        }
+    }
+    
+    function sendWeekToGroceries(weekBtn) {
+        const recipeIds = [];
+        const calendarDays = document.getElementById('calendar-days');
+        const allChildren = Array.from(calendarDays.children);
+        const btnIndex = allChildren.indexOf(weekBtn);
+        
+        // Get the 7 days after this button (the week row)
+        const weekDays = allChildren.slice(btnIndex + 1, btnIndex + 8);
+        
+        weekDays.forEach(dayDiv => {
+            if (dayDiv.classList.contains('calendar-day')) {
+                const slots = dayDiv.querySelectorAll('.meal-slot');
+                slots.forEach(slot => {
+                    const date = slot.dataset.date;
+                    const meal = slot.dataset.meal;
+                    const mealPlan = getMealPlan(date, meal);
+                    if (mealPlan) {
+                        const key = `${date}-${meal}`;
+                        const planData = mealPlans[key];
+                        if (planData && planData.recipe_id) {
+                            recipeIds.push(planData.recipe_id);
+                        }
+                    }
+                });
+            }
+        });
+        
+        if (recipeIds.length === 0) {
+            alert('No recipes found in this week!');
+            return;
+        }
+        
+        const recipeIdsStr = recipeIds.join(',');
+        window.location.href = `/groceries?recipes=${recipeIdsStr}`;
+    }
+    
+    // Initialize
+    loadData();
+</script>
+{% endblock %}
