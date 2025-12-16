@@ -22,11 +22,74 @@
                     <li><a href="{{ url_for('add_recipes') }}">Add Recipes</a></li>
                 </ul>
             </nav>
+            <div class="theme-switcher">
+                <button id="theme-toggle" class="theme-toggle-btn" title="Change theme">
+                    🎨
+                </button>
+                <div id="theme-menu" class="theme-menu">
+                    <button class="theme-option" data-theme="light">Light</button>
+                    <button class="theme-option" data-theme="dark">Dark</button>
+                    <button class="theme-option" data-theme="lavender-light">Lavender Light</button>
+                    <button class="theme-option" data-theme="lavender-dark">Lavender Dark</button>
+                </div>
+            </div>
         </div>
     </div>
     
     <main>
         {% block content %}{% endblock %}
     </main>
+    
+    <script>
+        // Theme Management
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeMenu = document.getElementById('theme-menu');
+        const themeOptions = document.querySelectorAll('.theme-option');
+        
+        // Load saved theme or default to light
+        const savedTheme = localStorage.getItem('cookbook-theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // Toggle theme menu
+        themeToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeMenu.classList.toggle('show');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', () => {
+            themeMenu.classList.remove('show');
+        });
+        
+        // Prevent menu from closing when clicking inside it
+        themeMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+        
+        // Theme selection
+        themeOptions.forEach(option => {
+            const theme = option.getAttribute('data-theme');
+            
+            // Mark current theme as active
+            if (theme === savedTheme) {
+                option.classList.add('active');
+            }
+            
+            option.addEventListener('click', () => {
+                const selectedTheme = option.getAttribute('data-theme');
+                
+                // Update theme
+                document.documentElement.setAttribute('data-theme', selectedTheme);
+                localStorage.setItem('cookbook-theme', selectedTheme);
+                
+                // Update active state
+                themeOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                // Close menu
+                themeMenu.classList.remove('show');
+            });
+        });
+    </script>
 </body>
 </html>

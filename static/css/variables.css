@@ -1,5 +1,8 @@
-/* Color Palette */
-:root {
+/* Color Palette - Theme System */
+
+/* Light Theme (Default) */
+:root,
+[data-theme="light"] {
     /* Primary Colors */
     --primary-purple: #667eea;
     --primary-purple-dark: #5568d3;
@@ -50,6 +53,172 @@
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, var(--primary-purple) 0%, var(--secondary-purple) 100%);
     --gradient-overlay: rgba(255, 255, 255, 0.2);
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    /* Primary Colors */
+    --primary-purple: #7c3aed;
+    --primary-purple-dark: #6d28d9;
+    --secondary-purple: #a855f7;
+    
+    /* Accent Colors */
+    --accent-green: #4ade80;
+    --accent-green-dark: #22c55e;
+    --accent-orange: #fb923c;
+    --accent-orange-dark: #f97316;
+    --accent-purple: #c084fc;
+    --accent-purple-dark: #a855f7;
+    
+    /* Neutrals */
+    --white: #1a1a1a;
+    --gray-lightest: #2a2a2a;
+    --gray-lighter: #333333;
+    --gray-light: #404040;
+    --gray-medium: #525252;
+    --gray: #666666;
+    --gray-dark: #a3a3a3;
+    --gray-darker: #d4d4d4;
+    --gray-darkest: #e5e5e5;
+    --text-primary: #f5f5f5;
+    --text-secondary: #d4d4d4;
+    
+    /* Status Colors */
+    --error-light: #7f1d1d;
+    --error: #ef4444;
+    --error-dark: #dc2626;
+    --error-border: #991b1b;
+    
+    /* Backgrounds */
+    --bg-page: #1a1a1a;
+    --bg-card: #262626;
+    --bg-input: #333333;
+    
+    /* Borders */
+    --border-color: #404040;
+    --border-color-light: #333333;
+    --border-color-focus: var(--primary-purple);
+    
+    /* Shadows */
+    --shadow-sm: 0 2px 10px rgba(0,0,0,0.5);
+    --shadow-md: 0 4px 10px rgba(0,0,0,0.5);
+    --shadow-lg: 0 5px 15px rgba(0,0,0,0.7);
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, var(--primary-purple) 0%, var(--secondary-purple) 100%);
+    --gradient-overlay: rgba(0, 0, 0, 0.3);
+}
+
+/* Base2Tone Lavender Light Theme */
+[data-theme="lavender-light"] {
+    /* Primary Colors */
+    --primary-purple: #7c5caa;
+    --primary-purple-dark: #6b4d95;
+    --secondary-purple: #a081c9;
+    
+    /* Accent Colors */
+    --accent-green: #66cc99;
+    --accent-green-dark: #55b888;
+    --accent-orange: #dd9955;
+    --accent-orange-dark: #cc8844;
+    --accent-purple: #9977cc;
+    --accent-purple-dark: #8866bb;
+    
+    /* Neutrals */
+    --white: #ffffff;
+    --gray-lightest: #f5f2f9;
+    --gray-lighter: #ebe6f2;
+    --gray-light: #dfd8ea;
+    --gray-medium: #c9c0d6;
+    --gray: #b3a8c2;
+    --gray-dark: #8b7f9a;
+    --gray-darker: #706479;
+    --gray-darkest: #564c61;
+    --text-primary: #3d3447;
+    --text-secondary: #564c61;
+    
+    /* Status Colors */
+    --error-light: #fce8ec;
+    --error: #dd5577;
+    --error-dark: #cc4466;
+    --error-border: #f5d0d8;
+    
+    /* Backgrounds */
+    --bg-page: #f5f2f9;
+    --bg-card: #ffffff;
+    --bg-input: #ebe6f2;
+    
+    /* Borders */
+    --border-color: #dfd8ea;
+    --border-color-light: #ebe6f2;
+    --border-color-focus: var(--primary-purple);
+    
+    /* Shadows */
+    --shadow-sm: 0 2px 10px rgba(124, 92, 170, 0.1);
+    --shadow-md: 0 4px 10px rgba(124, 92, 170, 0.15);
+    --shadow-lg: 0 5px 15px rgba(124, 92, 170, 0.2);
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, var(--primary-purple) 0%, var(--secondary-purple) 100%);
+    --gradient-overlay: rgba(245, 242, 249, 0.3);
+}
+
+/* Base2Tone Lavender Dark Theme */
+[data-theme="lavender-dark"] {
+    /* Primary Colors */
+    --primary-purple: #a081c9;
+    --primary-purple-dark: #8f6eb8;
+    --secondary-purple: #c9b3e3;
+    
+    /* Accent Colors */
+    --accent-green: #77ddaa;
+    --accent-green-dark: #66cc99;
+    --accent-orange: #eebb77;
+    --accent-orange-dark: #ddaa66;
+    --accent-purple: #bb99dd;
+    --accent-purple-dark: #aa88cc;
+    
+    /* Neutrals */
+    --white: #2a2235;
+    --gray-lightest: #362d40;
+    --gray-lighter: #43394d;
+    --gray-light: #4f4559;
+    --gray-medium: #665c70;
+    --gray: #7d7388;
+    --gray-dark: #a399af;
+    --gray-darker: #c9c0d6;
+    --gray-darkest: #dfd8ea;
+    --text-primary: #ebe6f2;
+    --text-secondary: #c9c0d6;
+    
+    /* Status Colors */
+    --error-light: #4d2a35;
+    --error: #dd6688;
+    --error-dark: #ee7799;
+    --error-border: #663344;
+    
+    /* Backgrounds */
+    --bg-page: #2a2235;
+    --bg-card: #362d40;
+    --bg-input: #43394d;
+    
+    /* Borders */
+    --border-color: #4f4559;
+    --border-color-light: #43394d;
+    --border-color-focus: var(--primary-purple);
+    
+    /* Shadows */
+    --shadow-sm: 0 2px 10px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 10px rgba(0,0,0,0.5);
+    --shadow-lg: 0 5px 15px rgba(0,0,0,0.6);
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, var(--primary-purple) 0%, var(--secondary-purple) 100%);
+    --gradient-overlay: rgba(42, 34, 53, 0.4);
+}
+
+/* Common Variables (not theme-dependent) */
+:root {
     
     /* Spacing */
     --spacing-xs: 5px;

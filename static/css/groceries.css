@@ -55,7 +55,7 @@
     top: 100%;
     left: 0;
     right: 0;
-    background: var(--white);
+    background: var(--bg-card);
     border: 2px solid var(--primary-purple);
     border-top: none;
     border-radius: 0 0 var(--radius-md) var(--radius-md);

@@ -47,7 +47,7 @@
 }
 
 .recipe-card {
-    background: var(--white);
+    background: var(--bg-card);
     border-radius: var(--radius-lg);
     overflow: hidden;
     box-shadow: var(--shadow-sm);
@@ -80,7 +80,7 @@
 }
 
 .recipe-description {
-    color: var(--gray-darkest);
+    color: var(--text-secondary);
     line-height: 1.5;
     font-size: var(--font-size-base);
     margin-bottom: var(--spacing-sm);
@@ -112,7 +112,7 @@
 }
 
 .modal-content {
-    background: var(--white);
+    background: var(--bg-card);
     border-radius: var(--radius-lg);
     max-width: 900px;
     width: 90%;
@@ -120,6 +120,7 @@
     overflow-y: auto;
     box-shadow: var(--shadow-lg);
     margin: 50px auto;
+    color: var(--text-primary);
 }
 
 .modal-header {
@@ -200,6 +201,7 @@
     border-bottom: 1px solid var(--border-color-light);
     display: flex;
     align-items: center;
+    color: var(--text-primary);
 }
 
 .ingredients-list li:before {
@@ -225,6 +227,7 @@
     counter-increment: instruction-counter;
     position: relative;
     padding-left: 60px;
+    color: var(--text-primary);
 }
 
 .instructions-list li:before {

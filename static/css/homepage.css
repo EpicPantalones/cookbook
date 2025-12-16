@@ -186,7 +186,7 @@
     display: block;
     font-size: var(--font-size-sm);
     margin-bottom: var(--spacing-xs);
-    color: var(--gray-darkest);
+    color: var(--text-secondary);
 }
 
 .add-item-input input {
