@@ -219,6 +219,46 @@
     margin-bottom: var(--spacing-md);
 }
 
+/* Grocery List Controls */
+.grocery-list-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--gray-lighter);
+    border-radius: var(--radius-md);
+}
+
+.clear-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.clear-option input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.clear-list-btn {
+    background: var(--accent-red);
+    color: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: bold;
+    transition: background var(--transition-normal);
+}
+
+.clear-list-btn:hover {
+    background: var(--accent-red-dark);
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     h1 {
@@ -301,5 +341,16 @@
     
     .add-item-btn {
         width: 100%;
+    }
+    
+    .grocery-list-controls {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        align-items: stretch;
+    }
+    
+    .clear-list-btn {
+        width: 100%;
+        padding: 10px;
     }
 }

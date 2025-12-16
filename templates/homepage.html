@@ -38,6 +38,13 @@
                 </div>
             </div>
             <div id="grocery-date" class="grocery-date"></div>
+            <div class="grocery-list-controls">
+                <label class="clear-option">
+                    <input type="checkbox" id="clear-completed-only" checked>
+                    <span>Completed only</span>
+                </label>
+                <button class="clear-list-btn" onclick="clearGroceryList()">🗑️ Clear List</button>
+            </div>
             <ul id="grocery-list" class="grocery-list">
                 <li class="no-data">No grocery list generated yet</li>
             </ul>
@@ -112,11 +119,14 @@
             // Load custom items from localStorage
             const customItems = JSON.parse(localStorage.getItem('customGroceryItems') || '[]');
             
+            // Check if generated items should be hidden
+            const hideGenerated = localStorage.getItem('hideGeneratedItems') === 'true';
+            
             // Store both for rendering
-            window.generatedItems = data.success ? data.items : [];
+            window.generatedItems = (data.success && !hideGenerated) ? data.items : [];
             window.customGroceryItems = customItems;
             
-            if (data.success && data.items.length > 0) {
+            if (data.success && !hideGenerated && data.items.length > 0) {
                 const createdDate = new Date(data.created_at);
                 groceryDate.textContent = `Generated on ${createdDate.toLocaleDateString()} at ${createdDate.toLocaleTimeString()}`;
                 
@@ -206,6 +216,9 @@
         document.getElementById('new-item-amount').value = '';
         document.getElementById('new-item-unit').value = '';
         
+        // Show generated items again if we're adding items
+        localStorage.removeItem('hideGeneratedItems');
+        
         loadGroceryList();
     }
     
@@ -244,6 +257,62 @@
                     loadGroceryList();
                 }
             }
+        }
+    }
+    
+    function clearGroceryList() {
+        const completedOnly = document.getElementById('clear-completed-only').checked;
+        
+        if (completedOnly) {
+            // Clear only completed items
+            if (!confirm('Clear all completed items from the list?')) {
+                return;
+            }
+            
+            const completedItems = JSON.parse(localStorage.getItem('completedGroceryItems') || '{}');
+            const customItems = JSON.parse(localStorage.getItem('customGroceryItems') || '[]');
+            const generatedItems = window.generatedItems || [];
+            
+            // Filter out completed custom items
+            const filteredCustomItems = [];
+            customItems.forEach((item, index) => {
+                const itemId = `custom-${index}`;
+                if (!completedItems[itemId]) {
+                    filteredCustomItems.push(item);
+                }
+            });
+            
+            // Filter out completed generated items
+            const filteredGeneratedItems = [];
+            generatedItems.forEach((item, index) => {
+                const itemId = `gen-${index}`;
+                if (!completedItems[itemId]) {
+                    filteredGeneratedItems.push(item);
+                }
+            });
+            
+            // Update localStorage and window variables
+            localStorage.setItem('customGroceryItems', JSON.stringify(filteredCustomItems));
+            localStorage.removeItem('completedGroceryItems');
+            window.generatedItems = filteredGeneratedItems;
+            window.customGroceryItems = filteredCustomItems;
+            
+            renderGroceryList();
+        } else {
+            // Clear all items
+            if (!confirm('Clear the entire grocery list? This will remove all items.')) {
+                return;
+            }
+            
+            localStorage.removeItem('customGroceryItems');
+            localStorage.removeItem('completedGroceryItems');
+            localStorage.setItem('hideGeneratedItems', 'true');
+            window.generatedItems = [];
+            window.customGroceryItems = [];
+            
+            const groceryList = document.getElementById('grocery-list');
+            groceryList.innerHTML = '<li class="no-data">No grocery list generated yet</li>';
+            document.getElementById('grocery-date').textContent = '';
         }
     }
     
