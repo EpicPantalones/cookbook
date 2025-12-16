@@ -1,0 +1,284 @@
+/* Homepage Specific Styles */
+.homepage-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+.dashboard-card {
+    background: var(--bg-card);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.dashboard-card h2 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg);
+    color: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* Week Calendar */
+.week-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+}
+
+.week-day {
+    background: var(--gray-lighter);
+    border-radius: 8px;
+    padding: 10px 8px;
+    min-height: 100px;
+}
+
+.week-day-header {
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: var(--font-size-base);
+    color: var(--primary-purple);
+    text-align: center;
+}
+
+.week-day-date {
+    font-size: var(--font-size-sm);
+    color: var(--gray-dark);
+    text-align: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.week-day.today {
+    background: var(--gradient-primary);
+    color: var(--white);
+}
+
+.week-day.today .week-day-header,
+.week-day.today .week-day-date,
+.week-day.today .meal-item {
+    color: var(--white);
+}
+
+.meal-item {
+    font-size: var(--font-size-xs);
+    padding: 4px 6px;
+    margin: 3px 0;
+    background: var(--white);
+    border-radius: 4px;
+    color: var(--text-primary);
+    border-left: 3px solid var(--primary-purple);
+}
+
+.week-day.today .meal-item {
+    background: var(--gradient-overlay);
+    color: var(--white);
+    border-left-color: var(--white);
+}
+
+.meal-icon {
+    margin-right: 3px;
+}
+
+/* Grocery List */
+.grocery-list {
+    list-style: none;
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.grocery-list li {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    transition: background var(--transition-normal);
+}
+
+.grocery-list li:hover {
+    background: var(--gray-lighter);
+}
+
+.grocery-list li.completed {
+    opacity: 0.6;
+}
+
+.grocery-list li.completed .grocery-item-name,
+.grocery-list li.completed .grocery-item-amount {
+    text-decoration: line-through;
+}
+
+.grocery-item-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    margin-right: var(--spacing-sm);
+}
+
+.grocery-item-content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.grocery-item-name {
+    font-weight: bold;
+}
+
+.grocery-item-amount {
+    color: var(--gray-darkest);
+}
+
+.grocery-item-edit {
+    opacity: 0;
+    background: var(--primary-purple);
+    color: var(--white);
+    border: none;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    margin-left: var(--spacing-sm);
+    transition: opacity var(--transition-normal);
+}
+
+.grocery-list li:hover .grocery-item-edit {
+    opacity: 1;
+}
+
+.grocery-item-edit:hover {
+    background: var(--primary-purple-dark);
+}
+
+/* Add Item Section */
+.add-item-section {
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--gray-lighter);
+    border-radius: var(--radius-md);
+}
+
+.add-item-form {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.add-item-input {
+    flex: 1;
+    min-width: 150px;
+}
+
+.add-item-input label {
+    display: block;
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xs);
+    color: var(--gray-darkest);
+}
+
+.add-item-input input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-base);
+}
+
+.add-item-btn {
+    background: var(--accent-green);
+    color: var(--white);
+    border: none;
+    padding: 8px var(--spacing-lg);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.add-item-btn:hover {
+    background: var(--accent-green-dark);
+}
+
+.grocery-date {
+    font-size: var(--font-size-sm);
+    color: var(--gray-dark);
+    margin-bottom: var(--spacing-md);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    h1 {
+        font-size: var(--font-size-xxl);
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .dashboard-card {
+        padding: var(--spacing-md);
+    }
+    
+    .week-calendar {
+        grid-template-columns: repeat(7, 1fr);
+        gap: var(--spacing-xs);
+    }
+    
+    .week-day {
+        padding: 8px 4px;
+        min-height: 120px;
+        font-size: var(--font-size-xs);
+    }
+    
+    .week-day-header {
+        font-size: var(--font-size-xs);
+    }
+    
+    .week-day-date {
+        font-size: 10px;
+    }
+    
+    .meal-item {
+        font-size: 9px;
+        padding: 3px 4px;
+    }
+    
+    .grocery-list {
+        max-height: 300px;
+    }
+    
+    .grocery-list li {
+        font-size: var(--font-size-base);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+    
+    .add-item-form {
+        flex-direction: column;
+    }
+    
+    .add-item-input {
+        width: 100%;
+        max-width: none !important;
+    }
+    
+    .add-item-btn {
+        width: 100%;
+    }
+}

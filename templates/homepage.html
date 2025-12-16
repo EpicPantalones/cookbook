@@ -2,143 +2,11 @@
 
 {% block title %}Home - Cookbook{% endblock %}
 
-{% block content %}
-<style>
-    .homepage-container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    
-    h1 {
-        margin-bottom: 30px;
-    }
-    
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-        margin-bottom: 30px;
-    }
-    
-    @media (max-width: 900px) {
-        .dashboard-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    
-    .dashboard-card {
-        background: white;
-        padding: 25px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    
-    .dashboard-card h2 {
-        margin-top: 0;
-        margin-bottom: 20px;
-        color: #667eea;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .week-calendar {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 10px;
-        margin-top: 15px;
-    }
-    
-    .week-day {
-        background: #f9f9f9;
-        border-radius: 8px;
-        padding: 12px;
-        min-height: 150px;
-    }
-    
-    .week-day-header {
-        font-weight: bold;
-        margin-bottom: 8px;
-        font-size: 14px;
-        color: #667eea;
-        text-align: center;
-    }
-    
-    .week-day-date {
-        font-size: 12px;
-        color: #999;
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    
-    .week-day.today {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-    
-    .week-day.today .week-day-header,
-    .week-day.today .week-day-date,
-    .week-day.today .meal-item {
-        color: white;
-    }
-    
-    .meal-item {
-        font-size: 11px;
-        padding: 4px 6px;
-        margin: 3px 0;
-        background: white;
-        border-radius: 4px;
-        color: #333;
-        border-left: 3px solid #667eea;
-    }
-    
-    .week-day.today .meal-item {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border-left-color: white;
-    }
-    
-    .meal-icon {
-        margin-right: 3px;
-    }
-    
-    .grocery-list {
-        list-style: none;
-        padding: 0;
-        max-height: 400px;
-        overflow-y: auto;
-    }
-    
-    .grocery-list li {
-        padding: 12px;
-        border-bottom: 1px solid #eee;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .grocery-item-name {
-        font-weight: bold;
-    }
-    
-    .grocery-item-amount {
-        color: #666;
-    }
-    
-    .no-data {
-        text-align: center;
-        padding: 30px;
-        color: #999;
-        font-style: italic;
-    }
-    
-    .grocery-date {
-        font-size: 12px;
-        color: #999;
-        margin-bottom: 15px;
-    }
-</style>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
+{% endblock %}
 
+{% block content %}
 <div class="homepage-container">
     <h1>🏠 Welcome to Your Cookbook</h1>
     
@@ -152,6 +20,23 @@
         
         <div class="dashboard-card">
             <h2>🛒 Latest Grocery List</h2>
+            <div class="add-item-section">
+                <div class="add-item-form">
+                    <div class="add-item-input">
+                        <label>Item Name *</label>
+                        <input type="text" id="new-item-name" placeholder="e.g., Milk">
+                    </div>
+                    <div class="add-item-input" style="max-width: 100px;">
+                        <label>Amount</label>
+                        <input type="text" id="new-item-amount" placeholder="e.g., 2">
+                    </div>
+                    <div class="add-item-input" style="max-width: 100px;">
+                        <label>Unit</label>
+                        <input type="text" id="new-item-unit" placeholder="e.g., gal">
+                    </div>
+                    <button class="add-item-btn" onclick="addCustomItem()">+ Add Item</button>
+                </div>
+            </div>
             <div id="grocery-date" class="grocery-date"></div>
             <ul id="grocery-list" class="grocery-list">
                 <li class="no-data">No grocery list generated yet</li>
@@ -224,22 +109,141 @@
             const groceryList = document.getElementById('grocery-list');
             const groceryDate = document.getElementById('grocery-date');
             
+            // Load custom items from localStorage
+            const customItems = JSON.parse(localStorage.getItem('customGroceryItems') || '[]');
+            
+            // Store both for rendering
+            window.generatedItems = data.success ? data.items : [];
+            window.customGroceryItems = customItems;
+            
             if (data.success && data.items.length > 0) {
                 const createdDate = new Date(data.created_at);
                 groceryDate.textContent = `Generated on ${createdDate.toLocaleDateString()} at ${createdDate.toLocaleTimeString()}`;
                 
-                groceryList.innerHTML = data.items.map(item => `
-                    <li>
-                        <span class="grocery-item-name">${item.name}</span>
-                        <span class="grocery-item-amount">${item.amount} ${item.unit}</span>
-                    </li>
-                `).join('');
+                renderGroceryList();
+            } else if (customItems.length > 0) {
+                groceryDate.textContent = '';
+                renderGroceryList();
             } else {
                 groceryDate.textContent = '';
                 groceryList.innerHTML = '<li class="no-data">No grocery list generated yet</li>';
             }
         } catch (error) {
             console.error('Error loading grocery list:', error);
+        }
+    }
+    
+    function renderGroceryList() {
+        const groceryList = document.getElementById('grocery-list');
+        const completedItems = JSON.parse(localStorage.getItem('completedGroceryItems') || '{}');
+        const generatedItems = window.generatedItems || [];
+        const customItems = window.customGroceryItems || [];
+        
+        let html = '';
+        
+        // Render generated items
+        generatedItems.forEach((item, index) => {
+            const itemId = `gen-${index}`;
+            const isCompleted = completedItems[itemId] || false;
+            const amountText = item.amount && item.unit ? `${item.amount} ${item.unit}` : (item.amount || item.unit || '');
+            
+            html += `
+                <li class="${isCompleted ? 'completed' : ''}" data-item-id="${itemId}">
+                    <input type="checkbox" class="grocery-item-checkbox" ${isCompleted ? 'checked' : ''} onchange="toggleItemComplete('${itemId}')">
+                    <div class="grocery-item-content">
+                        <span class="grocery-item-name">${item.name}</span>
+                        <span class="grocery-item-amount">${amountText}</span>
+                    </div>
+                    <button class="grocery-item-edit" onclick="editGroceryItem('gen', ${index})">Edit</button>
+                </li>
+            `;
+        });
+        
+        // Render custom items
+        customItems.forEach((item, index) => {
+            const itemId = `custom-${index}`;
+            const isCompleted = completedItems[itemId] || false;
+            const amountText = item.amount && item.unit ? `${item.amount} ${item.unit}` : (item.amount || item.unit || '');
+            
+            html += `
+                <li class="${isCompleted ? 'completed' : ''}" data-item-id="${itemId}">
+                    <input type="checkbox" class="grocery-item-checkbox" ${isCompleted ? 'checked' : ''} onchange="toggleItemComplete('${itemId}')">
+                    <div class="grocery-item-content">
+                        <span class="grocery-item-name">${item.name}</span>
+                        <span class="grocery-item-amount">${amountText}</span>
+                    </div>
+                    <button class="grocery-item-edit" onclick="editGroceryItem('custom', ${index})">Edit</button>
+                </li>
+            `;
+        });
+        
+        groceryList.innerHTML = html || '<li class="no-data">No items in list</li>';
+    }
+    
+    function toggleItemComplete(itemId) {
+        let completedItems = JSON.parse(localStorage.getItem('completedGroceryItems') || '{}');
+        completedItems[itemId] = !completedItems[itemId];
+        localStorage.setItem('completedGroceryItems', JSON.stringify(completedItems));
+        renderGroceryList();
+    }
+    
+    function addCustomItem() {
+        const name = document.getElementById('new-item-name').value.trim();
+        const amount = document.getElementById('new-item-amount').value.trim();
+        const unit = document.getElementById('new-item-unit').value.trim();
+        
+        if (!name) {
+            alert('Please enter an item name');
+            return;
+        }
+        
+        const customItems = JSON.parse(localStorage.getItem('customGroceryItems') || '[]');
+        customItems.push({ name, amount, unit });
+        localStorage.setItem('customGroceryItems', JSON.stringify(customItems));
+        
+        // Clear inputs
+        document.getElementById('new-item-name').value = '';
+        document.getElementById('new-item-amount').value = '';
+        document.getElementById('new-item-unit').value = '';
+        
+        loadGroceryList();
+    }
+    
+    function editGroceryItem(type, index) {
+        if (type === 'custom') {
+            const customItems = JSON.parse(localStorage.getItem('customGroceryItems') || '[]');
+            if (index >= 0 && index < customItems.length) {
+                const item = customItems[index];
+                const newName = prompt('Edit item name:', item.name);
+                if (newName !== null && newName.trim()) {
+                    item.name = newName.trim();
+                    const newAmount = prompt('Edit amount (optional):', item.amount || '');
+                    item.amount = newAmount !== null ? newAmount.trim() : item.amount;
+                    const newUnit = prompt('Edit unit (optional):', item.unit || '');
+                    item.unit = newUnit !== null ? newUnit.trim() : item.unit;
+                    
+                    customItems[index] = item;
+                    localStorage.setItem('customGroceryItems', JSON.stringify(customItems));
+                    loadGroceryList();
+                }
+            }
+        } else {
+            // For generated items, create a copy as custom item
+            const generatedItems = window.generatedItems || [];
+            if (index >= 0 && index < generatedItems.length) {
+                const item = generatedItems[index];
+                const newName = prompt('Edit item name:', item.name);
+                if (newName !== null && newName.trim()) {
+                    const customItems = JSON.parse(localStorage.getItem('customGroceryItems') || '[]');
+                    customItems.push({
+                        name: newName.trim(),
+                        amount: prompt('Edit amount (optional):', item.amount || '') || '',
+                        unit: prompt('Edit unit (optional):', item.unit || '') || ''
+                    });
+                    localStorage.setItem('customGroceryItems', JSON.stringify(customItems));
+                    loadGroceryList();
+                }
+            }
         }
     }
     
