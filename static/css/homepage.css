@@ -264,9 +264,30 @@
     
     .grocery-list li {
         font-size: var(--font-size-base);
+        flex-direction: row;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+    }
+    
+    .grocery-item-checkbox {
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+    
+    .grocery-item-content {
         flex-direction: column;
         align-items: flex-start;
-        gap: var(--spacing-xs);
+        gap: 4px;
+    }
+    
+    .grocery-item-name {
+        font-size: var(--font-size-md);
+    }
+    
+    .grocery-item-amount {
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary);
     }
     
     .add-item-form {
