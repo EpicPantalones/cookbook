@@ -307,7 +307,8 @@ def parse_recipe():
         # Import recipe-scrapers library
         from recipe_scrapers import scrape_me
         
-        scraper = scrape_me(url)
+        # Enable wild_mode to support any website, not just the supported list
+        scraper = scrape_me(url, wild_mode=True)
         
         # Helper function to safely extract data
         def safe_get(method, default=None):
